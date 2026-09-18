@@ -11,7 +11,12 @@ function renderAccounts(){$('acBody').innerHTML=(data.accounts||[]).map(a=>`<tr>
 function isAdmin(){return String((data.user||{}).role||'').toLowerCase()==='admin'}
 async function loadUsers(){if(!isAdmin()){alert('Admin sahaja.');showPage('dashboard');return}const r=await api('getUsers',{token});if(!r.ok){$('userMsg').textContent=r.error||'Gagal memuatkan user.';return}data.users=r.users||[];renderUsers()}
 function renderUsers(){if(!$('usersBody'))return;$('usersBody').innerHTML=(data.users||[]).map(u=>`<tr><td>${esc(u.userId)}</td><td>${esc(u.name)}</td><td>${esc(u.recoveryEmail)}</td><td>${esc(u.role)}</td><td>${esc(u.status)}</td><td><button onclick="editUser('${escAttr(u.userId)}')">Edit</button>${u.status==='Active'&&u.userId!==String((data.user||{}).userId||'')?`<button onclick="disableUser('${escAttr(u.userId)}')">Deactivate</button>`:''}</td></tr>`).join('')}
-function escAttr(s){return String(s||'').replace(/\/g,'\\').replace(/'/g,"\'").replace(/"/g,'&quot;')}
+function escAttr(s){
+  return String(s || '')
+    .replace(/\\/g,'\\\\')
+    .replace(/'/g,"\\'")
+    .replace(/"/g,'&quot;');
+}
 function editUser(userId){const u=(data.users||[]).find(x=>String(x.userId)===String(userId));if(!u)return;$('userId').value=u.userId;$('userId').disabled=true;$('userName').value=u.name;$('userEmail').value=u.recoveryEmail;$('userPassword').value='';$('userRole').value=u.role;$('userStatus').value=u.status;$('userMsg').textContent='Mode edit: '+u.userId;window.scrollTo({top:0,behavior:'smooth'})}
 function clearUserForm(){$('userId').disabled=false;$('userId').value='';$('userName').value='';$('userEmail').value='';$('userPassword').value='';$('userRole').value='User';$('userStatus').value='Active';if($('userMsg'))$('userMsg').textContent=''}
 async function saveUser(){if(!isAdmin()){alert('Admin sahaja.');return}const r=await api('saveUser',{token,userId:$('userId').value,name:$('userName').value,recoveryEmail:$('userEmail').value,password:$('userPassword').value,role:$('userRole').value,status:$('userStatus').value});$('userMsg').textContent=r.ok?r.message:r.error;if(r.ok){clearUserForm();await loadUsers()}}
